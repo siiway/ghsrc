@@ -1,8 +1,9 @@
-function copyn(text, targetId, successMessage) {
+function copyn(text, targetId, successMessage, timeout) {
   /*
   text: Text will copy / 要复制的文本
   targetId: Id of target div / 复制提示 div 的 id
   successMessage: Text will show after copy / 复制成功的提示
+  timeout: Timeout in milliseconds / 等待时间（毫秒）
   */
   var target = document.getElementById(targetId);
   var originalText = target.innerHTML;
@@ -18,5 +19,5 @@ function copyn(text, targetId, successMessage) {
 
   setTimeout(function() {
     target.innerHTML = originalText;
-  }, 1000);
+  }, timeout);
 }
