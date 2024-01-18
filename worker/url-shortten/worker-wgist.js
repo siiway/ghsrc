@@ -7,7 +7,7 @@ const config = {
   snapchat_mode: false,//The link will be distroyed after access.
   visit_count: false,//Count visit times.
   load_kv: true,//Load all from Cloudflare KV
-  shorturl_system: true,//Check value is valid URL && 302 jump to the value
+  shorturl_system: false,//Check value is valid URL && 302 jump to the value
 }
 
 // key in protect_keylist can't read, add, del from UI and API
@@ -21,6 +21,30 @@ const routes = {
   "^/api/get": handleGet,
   "^/api/del": handleDel,
 };
+
+let index_html = "https://ghsrc.wyf9.top/worker/url-shortten/" + config.theme + "/index.html"
+let no_ref_html = "https://ghsrc.wyf9.top/worker/url-shortten/no-ref.html";
+
+const html404 = `<!DOCTYPE html>
+  <html>
+  <body>
+    <h1>404 Not Found.</h1>
+    <p>The url you visit is not found.</p>
+  </body>
+  </html>`
+
+let response_header = {
+  "Content-type": "text/html;charset=UTF-8;application/json",
+}
+
+if (config.cors == "on") {
+  response_header = {
+    "Content-type": "text/html;charset=UTF-8;application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  }
+}
 
 
 // HTTP API add
@@ -67,30 +91,6 @@ async function handleDel(params) {
   });
 }
 
-
-let index_html = "https://ghsrc.wyf9.top/worker/url-shortten/" + config.theme + "/index.html"
-let no_ref_html = "https://ghsrc.wyf9.top/worker/url-shortten/no-ref.html";
-
-const html404 = `<!DOCTYPE html>
-  <html>
-  <body>
-    <h1>404 Not Found.</h1>
-    <p>The url you visit is not found.</p>
-  </body>
-  </html>`
-
-let response_header = {
-  "Content-type": "text/html;charset=UTF-8;application/json",
-}
-
-if (config.cors == "on") {
-  response_header = {
-    "Content-type": "text/html;charset=UTF-8;application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST",
-    "Access-Control-Allow-Headers": "Content-Type",
-  }
-}
 
 async function randomString(len) {
   len = len || 6;
@@ -158,7 +158,7 @@ async function handleRequest(request) {
   // console.log(request)
 
   // 查KV中的password对应的值 Query "password" in KV
-  const password_value = "wyf9114514";
+  const password_value = 'wyf9';
 
   // HTTP API
   const { pathname, searchParams } = new URL(request.url);
@@ -176,13 +176,13 @@ async function handleRequest(request) {
   // 以下是API接口的处理
 
   if (request.method === "POST") {
-    let req = await request.json();
+    let req = await request.json()
     // console.log(req)
 
-    let req_cmd = req["cmd"];
-    let req_url = req["url"];
-    let req_key = req["key"];
-    let req_password = req["password"];
+    let req_cmd = req["cmd"]
+    let req_url = req["url"]
+    let req_key = req["key"]
+    let req_password = req["password"]
 
     /*
     console.log(req_cmd)
@@ -192,163 +192,109 @@ async function handleRequest(request) {
     */
 
     if (req_password != password_value) {
-      return new Response(
-        `{"status":500,"key": "", "error":"Error: Invalid password."}`,
-        {
-          headers: response_header,
-        }
-      );
+      return new Response(`{"status":500,"key": "", "error":"Error: Invalid password."}`, {
+        headers: response_header,
+      })
     }
 
     if (req_cmd == "add") {
-      if (config.shorturl_system && !(await checkURL(req_url))) {
-        return new Response(
-          `{"status":500, "url": "` +
-            req_url +
-            `", "error":"Error: Url illegal."}`,
-          {
-            headers: response_header,
-          }
-        );
-      }
+      if (config.shorturl_system && !await checkURL(req_url)) {
+        return new Response(`{"status":500, "url": "` + req_url + `", "error":"Error: Url illegal."}`, {
+          headers: response_header,
+        })
+      }      
 
-      let stat, random_key;
-      if (config.custom_link && req_key != "") {
+      let stat, random_key
+      if (config.custom_link && (req_key != "")) {
         // Refuse 'password" as Custom shortURL
         if (protect_keylist.includes(req_key)) {
-          return new Response(
-            `{"status":500,"key": "` +
-              req_key +
-              `", "error":"Error: Key in protect_keylist."}`,
-            {
-              headers: response_header,
-            }
-          );
+          return new Response(`{"status":500,"key": "` + req_key + `", "error":"Error: Key in protect_keylist."}`, {
+            headers: response_header,
+          })
         }
 
-        let is_exist = await LINKS.get(req_key);
+        let is_exist = await LINKS.get(req_key)
         if (is_exist != null) {
-          return new Response(
-            `{"status":500,"key": "` +
-              req_key +
-              `", "error":"Error: Specific key existed."}`,
-            {
-              headers: response_header,
-            }
-          );
+          return new Response(`{"status":500,"key": "` + req_key + `", "error":"Error: Specific key existed."}`, {
+            headers: response_header,
+          })
         } else {
-          random_key = req_key;
-          stat, await LINKS.put(req_key, req_url);
+          random_key = req_key
+          stat, await LINKS.put(req_key, req_url)
         }
       } else if (config.unique_link) {
-        let url_sha512 = await sha512(req_url);
-        let url_key = await is_url_exist(url_sha512);
+        let url_sha512 = await sha512(req_url)
+        let url_key = await is_url_exist(url_sha512)
         if (url_key) {
-          random_key = url_key;
+          random_key = url_key
         } else {
-          stat, (random_key = await save_url(req_url));
-          if (typeof stat == "undefined") {
-            await LINKS.put(url_sha512, random_key);
+          stat, random_key = await save_url(req_url)
+          if (typeof (stat) == "undefined") {
+            await LINKS.put(url_sha512, random_key)
             // console.log()
           }
         }
       } else {
-        stat, (random_key = await save_url(req_url));
+        stat, random_key = await save_url(req_url)
       }
       // console.log(stat)
-      if (typeof stat == "undefined") {
-        return new Response(
-          `{"status":200, "key":"` + random_key + `", "error": ""}`,
-          {
-            headers: response_header,
-          }
-        );
+      if (typeof (stat) == "undefined") {
+        return new Response(`{"status":200, "key":"` + random_key + `", "error": ""}`, {
+          headers: response_header,
+        })
       } else {
-        return new Response(
-          `{"status":500, "key": "", "error":"Error: Reach the KV write limitation."}`,
-          {
-            headers: response_header,
-          }
-        );
+        return new Response(`{"status":500, "key": "", "error":"Error: Reach the KV write limitation."}`, {
+          headers: response_header,
+        })
       }
     } else if (req_cmd == "del") {
       // Refuse to delete 'password' entry
       if (protect_keylist.includes(req_key)) {
-        return new Response(
-          `{"status":500, "key": "` +
-            req_key +
-            `", "error":"Error: Key in protect_keylist."}`,
-          {
-            headers: response_header,
-          }
-        );
+        return new Response(`{"status":500, "key": "` + req_key + `", "error":"Error: Key in protect_keylist."}`, {
+          headers: response_header,
+        })
       }
 
-      await LINKS.delete(req_key);
-
+      await LINKS.delete(req_key)
+      
       // 计数功能打开的话, 要把计数的那条KV也删掉 Remove the visit times record
       if (config.visit_count) {
-        await LINKS.delete(req_key + "-count");
+        await LINKS.delete(req_key + "-count")
       }
 
-      return new Response(
-        `{"status":200, "key": "` + req_key + `", "error": ""}`,
-        {
-          headers: response_header,
-        }
-      );
+      return new Response(`{"status":200, "key": "` + req_key + `", "error": ""}`, {
+        headers: response_header,
+      })
     } else if (req_cmd == "qry") {
       // Refuse to query 'password'
       if (protect_keylist.includes(req_key)) {
-        return new Response(
-          `{"status":500,"key": "` +
-            req_key +
-            `", "error":"Error: Key in protect_keylist."}`,
-          {
-            headers: response_header,
-          }
-        );
+        return new Response(`{"status":500,"key": "` + req_key + `", "error":"Error: Key in protect_keylist."}`, {
+          headers: response_header,
+        })
       }
 
-      let value = await LINKS.get(req_key);
+      let value = await LINKS.get(req_key)
       if (value != null) {
-        return new Response(
-          `{"status":200, "key": "` +
-            req_key +
-            `", "url": "` +
-            value +
-            `", "error":""}`,
-          {
-            headers: response_header,
-          }
-        );
+        return new Response(`{"status":200, "key": "` + req_key + `", "url": "` + value + `", "error":""}`, {
+          headers: response_header,
+        })
       } else {
-        return new Response(
-          `{"status":500, "key": "` +
-            req_key +
-            `", "error":"Error: Key not exist."}`,
-          {
-            headers: response_header,
-          }
-        );
+        return new Response(`{"status":500, "key": "` + req_key + `", "error":"Error: Key not exist."}`, {
+          headers: response_header,
+        })
       }
     } else if (req_cmd == "qryall") {
-      if (!config.load_kv) {
-        return new Response(
-          `{"status":500, "error":"Error: Config.load_kv false."}`,
-          {
-            headers: response_header,
-          }
-        );
+      if ( !config.load_kv) {
+        return new Response(`{"status":500, "error":"Error: Config.load_kv false."}`, {
+          headers: response_header,
+        })
       }
 
-      let keyList = await LINKS.list();
+      let keyList = await LINKS.list()
       if (keyList != null) {
         // 初始化返回数据结构 Init the return struct
-        let jsonObjectRetrun = JSON.parse(
-          `{"status":200, "error":"", "kvlist": []}`
-        );
-
+        let jsonObjectRetrun = JSON.parse(`{"status":200, "error":"", "kvlist": []}`);
+                
         for (var i = 0; i < keyList.keys.length; i++) {
           let item = keyList.keys[i];
           // Hide 'password' from the query all result
@@ -361,42 +307,41 @@ async function handleRequest(request) {
           }
 
           let url = await LINKS.get(item.name);
-
-          let newElement = { key: item.name, value: url };
+          
+          let newElement = { "key": item.name, "value": url };
           // 填充要返回的列表 Fill the return list
           jsonObjectRetrun.kvlist.push(newElement);
-        }
+        }       
 
-        return new Response(JSON.stringify(jsonObjectRetrun), {
+        return new Response(JSON.stringify(jsonObjectRetrun) , {
           headers: response_header,
-        });
+        })
       } else {
-        return new Response(
-          `{"status":500, "error":"Error: Load keyList failed."}`,
-          {
-            headers: response_header,
-          }
-        );
+        return new Response(`{"status":500, "error":"Error: Load keyList failed."}`, {
+          headers: response_header,
+        })
       }
+
     }
+
   } else if (request.method === "OPTIONS") {
     return new Response(``, {
       headers: response_header,
-    });
+    })
   }
 
   /************************/
   // 以下是浏览器直接访问worker页面的处理
 
-  const requestURL = new URL(request.url);
-  const path = requestURL.pathname.split("/")[1];
+  const requestURL = new URL(request.url)
+  const path = requestURL.pathname.split("/")[1]
   const params = requestURL.search;
 
   // console.log(path)
   // 如果path为空, 即直接访问本worker
   // If visit this worker directly (no path)
   if (!path) {
-    return Response.redirect("https://t.wyf9.top/fake", 302);
+    return Response.redirect("https://t.wyf9.top/fake", 302)
     /* new Response(html404, {
       headers: {
         "content-type": "text/html;charset=UTF-8",
@@ -407,14 +352,14 @@ async function handleRequest(request) {
 
   // 如果path符合password 显示操作页面index.html
   if (path == password_value) {
-    let index = await fetch(index_html);
-    index = await index.text();
-    index = index.replace(/__PASSWORD__/gm, password_value);
+    let index = await fetch(index_html)
+    index = await index.text()
+    index = index.replace(/__PASSWORD__/gm, password_value)
     return new Response(index, {
       headers: {
         "content-type": "text/html;charset=UTF-8",
       },
-    });
+    })
   }
 
   // 在KV中查询 短链接 对应的原链接
@@ -439,7 +384,7 @@ async function handleRequest(request) {
     if (config.snapchat_mode) {
       // 删除KV中的记录
       // Remove record before jump to long url
-      await LINKS.delete(path);
+      await LINKS.delete(path)
     }
 
     // 作为一个短链系统, value就是long URL, 需要跳转
@@ -448,37 +393,37 @@ async function handleRequest(request) {
       // URL to jump finally
       let location;
       if (params) {
-        location = value + params;
+        location = value + params
       } else {
-        location = value;
+        location = value
       }
 
       if (config.no_ref == "on") {
-        let no_ref = await fetch(no_ref_html);
-        no_ref = await no_ref.text();
-        no_ref = no_ref.replace(/{Replace}/gm, location);
+        let no_ref = await fetch(no_ref_html)
+        no_ref = await no_ref.text()
+        no_ref = no_ref.replace(/{Replace}/gm, location)
         return new Response(no_ref, {
           headers: {
             "content-type": "text/html;charset=UTF-8",
           },
-        });
+        })
       } else {
-        return Response.redirect(location, 302);
+        return Response.redirect(location, 302)
       }
     } else {
       // 如果只是一个单纯的key-value系统, 简单的显示value就行了
       return new Response(value, {
         headers: response_header,
-      });
+      })
     }
-  } else {
+  } else {  
     // If request not in KV, return 404
     return new Response(html404, {
       headers: {
         "content-type": "text/html;charset=UTF-8",
       },
-      status: 404,
-    });
+      status: 404
+    })
   }
 }
 
