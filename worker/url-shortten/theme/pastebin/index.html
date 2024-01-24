@@ -12,31 +12,31 @@
 </head>
 <body>
   <div class="card">
-    <h5 class="card-header">短链系统变身网络记事本PasteBin</h5>
+    <h5 class="card-header">wyf9's PateBin</h5>
     <div class="card-body">
       <h5 class="card-title"> </h5>
 
       <div class="input-group mb-3">
-        <label>记事本内容</label>
+        <label>Value</label>
         <form class="input-group mb-3">
-          <textarea class="form-control" id="longURL" placeholder="输入文本" oninput="loadUrlList()"></textarea>
+          <textarea class="form-control" id="longURL" placeholder="Text here" oninput="loadUrlList()"></textarea>
         </form>
       </div>
 
       <div class="input-group mb-3">
         <div class="input-group-prepend">
-          <span class="input-group-text" id="basic-addon2">记事本密码</span>
+          <span class="input-group-text" id="basic-addon2">Name</span>
         </div>
         <input type="text" class="form-control" id="keyPhrase" aria-describedby="basic-addon2" placeholder="">
       </div>     
 
       <div class="input-group mb-3">
-        <button class="btn btn-primary" type="button" onclick='shorturl()' id="addBtn">保存</button>
+        <button class="btn btn-primary" type="button" onclick='shorturl()' id="addBtn">Save</button>
       </div>
 
       <div class="input-group mb-3">
         <div class="input-group-prepend">
-          <span class="input-group-text" id="basic-addon3">本系统密码</span>
+          <span class="input-group-text" id="basic-addon3">Password</span>
         </div>
         <input class="form-control" type="text" value="__PASSWORD__" readonly="true" id="passwordText" aria-describedby="basic-addon3">
         <!--
@@ -68,9 +68,6 @@
       </div>            
     </div>
     
-    <div class="card-footer">
-      <span> <a href="https://github.com/crazypeace/Url-Shorten-Worker/" target="_self">Fork me on GitHub</a> </span>
-    </div>
   </div>
 
   <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
