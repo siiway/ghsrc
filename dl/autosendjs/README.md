@@ -1,7 +1,7 @@
 # wAutoSend-Autoxjs
 本目录为 **wAutoSend-Autoxjs** 的安卓安装包目录
 
-https://raw.githubusercontent.com/wyf01239/ghsrc/main/dl/autosendjs/wAutoSend-Autoxjs_`[版本号]`.apk
+https://raw.githubusercontent.com/wyf01239/ghsrc/main/dl/autosendjs/wAutoSend-Autoxjs_[版本号].apk
 
 最新版本: `Latest`
 
