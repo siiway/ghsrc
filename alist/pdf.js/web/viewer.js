@@ -2030,6 +2030,10 @@ const PDFViewerApplication = {
   },
 
   run(config) {
+    if (config.defaultUrl) { // _wyf9_mod
+      _app_options.AppOptions.set('defaultUrl', config.defaultUrl);
+    };
+
     this.initialize(config).then(webViewerInitialized);
   },
 
@@ -3402,7 +3406,7 @@ const PDFViewerApplication = {
 exports.PDFViewerApplication = PDFViewerApplication;
 let validateFileURL;
 {
-  const HOSTED_VIEWER_ORIGINS = ["null", "http://alist-org.github.io", "https://alist-org.github.io", "https://alist.nn.ci", "https://ghsrc.wyf9.top"];
+  const HOSTED_VIEWER_ORIGINS = ["null", "http://alist-org.github.io", "https://alist-org.github.io", "https://alist.nn.ci", "https://ghsrc.wyf9.top"]; // _wyf9_mod
 
   validateFileURL = function (file) {
     if (!file) {
@@ -3419,7 +3423,7 @@ let validateFileURL;
       const fileOrigin = new URL(file, window.location.href).origin;
 
       if (fileOrigin !== viewerOrigin) {
-        //throw new Error("file origin does not match viewer's");
+        //throw new Error("file origin does not match viewer's"); // _wyf9_mod
       }
     } catch (ex) {
       PDFViewerApplication.l10n.get("loading_error").then(msg => {
@@ -16525,6 +16529,9 @@ function webViewerLoad() {
   } catch (ex) {
     console.error(`webviewerloaded: ${ex}`);
     document.dispatchEvent(event);
+  }
+  if (fileUrl) {
+    config.defaultUrl = fileUrl
   }
 
   _app.PDFViewerApplication.run(config);
