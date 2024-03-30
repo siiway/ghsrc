@@ -24,7 +24,7 @@ json_header = {
     "Access-Control-Allow-Headers": "Content-Type",
   }
 
-//生成从minNum到maxNum的随机数, from Runoob.com
+/*/生成从minNum到maxNum的随机数, from Runoob.com
 async function random(minNum,maxNum){ 
     switch(arguments.length){ 
         case 1: 
@@ -37,7 +37,8 @@ async function random(minNum,maxNum){
                 return 0; 
             break; 
     } 
-}
+} 
+*/
 
 async function stover(pwd) {
   if (pwd != tpwd) {
