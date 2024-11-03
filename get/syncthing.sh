@@ -13,10 +13,11 @@ $SUDO mkdir -p /etc/apt/keyrings
 $SUDO curl -L -o /etc/apt/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg
 
 echo "Adding APT source"
-echo "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable" | $SUDO tee /etc/apt/sources.list.d/syncthing.list
+read -p "Input reserve proxy url (https://example.com/) : " rpx
+echo "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] ${rpx}https://apt.syncthing.net/ syncthing stable" | $SUDO tee /etc/apt/sources.list.d/syncthing.list
 
 $SUDO apt-get update
 
-read -p "Input HTTP proxy (http://ip:port/) : " httppx
+# read -p "Input HTTP proxy (http://ip:port/) : " httppx
 
-sudo apt-get -o Acquire::http::proxy="$httppx" -o Acquire::https::proxy="$httppx" install syncthing
+# sudo apt-get -o Acquire::http::proxy="$httppx" -o Acquire::https::proxy="$httppx" install syncthing
