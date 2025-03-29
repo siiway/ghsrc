@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindmap Loader</title>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/simple-mind-map/0.13.0/simpleMindMap.esm.min.css"
+        integrity="sha512-lG/PzCCoKvaqnUUt8N0AZc8cACSBut22KfDbaLfPjszrmJ25OEfZr2X1FVa/ArVZiZ8Tz2cjURfFybEI3cX2yA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* 确保html和body都占满整个页面 */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            /* 去掉默认的边距 */
+        }
+
+        #mindMapContainer {
+            width: 100%;
+            height: 100%;
+            /* 占据整个页面 */
+        }
+
+        /* 其他样式 */
+        #mindMapContainer * {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mindMapContainer"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-mind-map/0.13.0/simpleMindMap.umd.min.js"
+        integrity="sha512-Y756Xzqcjv1uERRrU5cbVl3QtOzU6bcoiC2t6mDlaewzsYZZnNcKNwoGcR6QEoyVbJjJ8tLx9XBvGdXmWIAqwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        function getQuery(variable) {
+            // 获取 param
+            // From https://www.runoob.com/w3cnote/js-get-url-param.html
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split("=");
+                if (pair[0] == variable) { return pair[1]; }
+            }
+            return (false);
+        }
+
+        async function getJson(url) {
+            // 加载 json
+            try {
+                let response = await fetch(url);
+                return await response.json();
+            } catch (error) {
+                console.log(`[getJson] Error: ${error}`);
+                throw error;
+            }
+        }
+        window.onload = async function () {
+            try {
+                param = getQuery('url');
+                console.log(`[MindmapLoader] Query: '${param}'`);
+                if (!param) {
+                    throw '请提供 url 参数, 指向一个 json 文件以加载导图';
+                }
+                console.log(`[MindmapLoader] Loading: '${param}'`);
+                const Json = await getJson(param);
+                console.log(`[MindmapLoader] Got data: '${Json}'`);
+                const mindMap = new simpleMindMap.default({
+                    el: document.getElementById('mindMapContainer'),
+                    data: Json
+                });
+            } catch (error) {
+                console.log(`[MindmapLoader] [ERROR] ${error}`)
+                if (confirm(`[错误]\n${error}\n点击 '是' 关闭此页面.`)) {
+                    window.close();
+                }
+            }
+        };
+    </script>
+</body>
+
+</html>
